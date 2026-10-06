@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>For You</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Great+Vibes&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night:#14040e; --wine:#3a0b25; --ruby:#e11d48; --rose:#ff5c85;
+    --blush:#ffd9e2; --gold:#e9cfa2; --gold-deep:#c9a66b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Cormorant Garamond',Georgia,serif;
+    color:var(--blush);
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 110%,#6b1442 0%,transparent 70%),
+      radial-gradient(ellipse 60% 50% at 15% 0%,#2b0a3a 0%,transparent 70%),
+      var(--night);
+    overflow:hidden;
+  }
+  /* twinkling stars */
+  .stars{position:fixed;inset:0;pointer-events:none}
+  .stars i{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:.2;animation:tw 3s ease-in-out infinite}
+  @keyframes tw{0%,100%{opacity:.1;transform:scale(.8)}50%{opacity:.9;transform:scale(1.4)}}
+
+  canvas{position:fixed;inset:0;pointer-events:none;z-index:1}
+
+  .stage{position:fixed;inset:0;z-index:2;display:grid;place-items:center;padding:24px}
+  .scene{
+    grid-area:1/1;width:min(92vw,620px);text-align:center;
+    opacity:0;visibility:hidden;transform:translateY(24px) scale(.98);
+    transition:opacity .9s ease,transform .9s ease,visibility 0s .9s;
+  }
+  .scene.active{opacity:1;visibility:visible;transform:none;transition:opacity .9s ease .15s,transform .9s ease .15s}
+
+  .eyebrow{font-style:italic;font-size:clamp(1.1rem,3.4vw,1.4rem);color:var(--gold);letter-spacing:.04em;margin-bottom:10px}
+  .hero{
+    font-family:'Great Vibes','Brush Script MT',cursive;font-weight:400;
+    font-size:clamp(3.6rem,15vw,7.5rem);line-height:1.05;color:#fff4f6;
+    text-shadow:0 0 18px rgba(255,92,133,.75),0 0 60px rgba(225,29,72,.5);
+    min-height:1.15em;
+  }
+  .title{
+    font-family:'Great Vibes','Brush Script MT',cursive;font-weight:400;
+    font-size:clamp(3rem,12vw,5.6rem);line-height:1.1;color:#fff4f6;
+    text-shadow:0 0 22px rgba(255,92,133,.7);
+  }
+  .caret{display:inline-block;width:3px;height:.7em;background:var(--gold);margin-left:6px;vertical-align:middle;animation:bl .8s steps(1) infinite}
+  @keyframes bl{50%{opacity:0}}
+  .sub{margin-top:14px;font-size:clamp(1.15rem,3.6vw,1.5rem);font-style:italic;color:var(--blush);opacity:.9}
+
+  .divider{display:flex;align-items:center;gap:14px;justify-content:center;margin:26px auto;max-width:280px;color:var(--gold)}
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold-deep))}
+  .divider::after{transform:scaleX(-1)}
+  .divider span{animation:beat 1.4s ease-in-out infinite;display:inline-block;color:var(--rose)}
+  @keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.35)}30%{transform:scale(1)}45%{transform:scale(1.2)}}
+
+  .card{
+    padding:clamp(26px,5vw,44px);border-radius:22px;
+    background:linear-gradient(160deg,rgba(255,255,255,.10),rgba(255,255,255,.03));
+    border:1px solid rgba(233,207,162,.35);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    box-shadow:0 30px 80px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.12);
+  }
+  .letter p{font-size:clamp(1.2rem,3.8vw,1.55rem);line-height:1.6;margin:0 0 14px;opacity:0;transform:translateY(10px);transition:opacity 1s ease,transform 1s ease}
+  .letter p.in{opacity:1;transform:none}
+  .letter p.last{font-family:'Great Vibes',cursive;font-size:clamp(2.2rem,8vw,3.2rem);color:#fff4f6;margin:18px 0 0;text-shadow:0 0 18px rgba(255,92,133,.6)}
+
+  button{
+    font-family:inherit;font-weight:600;font-size:1.25rem;letter-spacing:.03em;
+    border:0;border-radius:999px;padding:14px 38px;cursor:pointer;
+    transition:transform .25s ease,box-shadow .25s ease,opacity .8s ease;
+  }
+  button:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
+  .primary{
+    color:#fff;background:linear-gradient(135deg,#e11d48,#ff5c85);
+    box-shadow:0 10px 30px rgba(225,29,72,.5),inset 0 1px 0 rgba(255,255,255,.35);
+  }
+  .primary:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(225,29,72,.65),inset 0 1px 0 rgba(255,255,255,.35)}
+  .ghost{color:var(--gold);background:transparent;border:1px solid var(--gold-deep)}
+  .cta{margin-top:30px;opacity:0;pointer-events:none}
+  .cta.show{opacity:1;pointer-events:auto}
+
+  .choices{margin-top:36px;display:flex;gap:18px;justify-content:center;align-items:center;flex-wrap:wrap;min-height:64px}
+  #yes{transition:transform .35s cubic-bezier(.3,1.6,.5,1),box-shadow .25s}
+  #no.run{position:fixed;z-index:5;transition:left .35s cubic-bezier(.3,1.4,.5,1),top .35s cubic-bezier(.3,1.4,.5,1)}
+
+  .signature{margin-top:26px;font-family:'Great Vibes',cursive;font-size:clamp(1.8rem,6vw,2.4rem);color:var(--gold)}
+
+  .dots{position:fixed;bottom:calc(22px + env(safe-area-inset-bottom,0px));left:0;right:0;display:flex;justify-content:center;gap:10px;z-index:3}
+  .dots b{width:7px;height:7px;border-radius:50%;background:rgba(233,207,162,.3);transition:all .5s}
+  .dots b.on{background:var(--gold);width:26px;border-radius:6px}
+
+  @media (prefers-reduced-motion:reduce){
+    .stars i,.divider span,.caret{animation:none}
+    .scene,.letter p{transition-duration:.01s}
+  }
+</style>
+</head>
+<body>
+<div class="stars" id="stars" aria-hidden="true"></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<div class="stage">
+  <!-- 1 · Hero -->
+  <section class="scene active" id="s1">
+    <p class="eyebrow" id="eyebrow"></p>
+    <h1 class="hero" id="typed" aria-label="I like you"></h1>
+    <p class="sub" id="sub" style="opacity:0;transition:opacity 1.4s">There is something I have wanted to tell you.</p>
+    <button class="primary cta" id="b1">Open my heart</button>
+  </section>
+
+  <!-- 2 · Letter -->
+  <section class="scene" id="s2">
+    <div class="card letter">
+      <p>From the moment I met you, something in me quietly changed.</p>
+      <p>You make ordinary days feel like moments worth keeping.</p>
+      <p>I am not good with perfect words, so I will simply be honest:</p>
+      <p class="last">I really like you.</p>
+    </div>
+    <button class="primary cta" id="b2">Continue</button>
+  </section>
+
+  <!-- 3 · Question -->
+  <section class="scene" id="s3">
+    <p class="eyebrow">One small question</p>
+    <h2 class="title">Will you be mine?</h2>
+    <div class="divider"><span>♥</span></div>
+    <p class="sub">I promise to make you smile, every single day.</p>
+    <div class="choices">
+      <button class="primary" id="yes">Yes</button>
+      <button class="ghost" id="no">No</button>
+    </div>
+  </section>
+
+  <!-- 4 · Yes -->
+  <section class="scene" id="s4">
+    <p class="eyebrow">You said yes</p>
+    <h2 class="hero">Forever starts now</h2>
+    <div class="divider"><span>♥</span></div>
+    <p class="sub">You just made me the happiest person in the world.</p>
+    <p class="signature" id="sign"></p>
+  </section>
+</div>
+
+<div class="dots" id="dots" aria-hidden="true"><b class="on"></b><b></b><b></b><b></b></div>
+
+<script>
+/* ======== Edit these ======== */
+const HER_NAME  = "";            // e.g. "Ayesha"  (leave empty to hide)
+const YOUR_NAME = "";            // e.g. "Ali"     (leave empty to hide)
+const MAIN_TEXT = "I like you";
+/* ============================ */
+
+const $ = id => document.getElementById(id);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+$('eyebrow').textContent = HER_NAME ? 'For ' + HER_NAME : 'Just for you';
+$('sign').textContent = YOUR_NAME ? 'Yours, ' + YOUR_NAME : 'Yours, always';
+
+/* stars */
+(function(){
+  const box = $('stars');
+  for(let i=0;i<70;i++){
+    const s = document.createElement('i');
+    s.style.left = Math.random()*100+'%';
+    s.style.top = Math.random()*100+'%';
+    s.style.animationDelay = (Math.random()*3)+'s';
+    s.style.animationDuration = (2+Math.random()*3)+'s';
+    box.appendChild(s);
+  }
+})();
+
+/* ---------- canvas hearts ---------- */
+const cv = $('fx'), ctx = cv.getContext('2d');
+let W, H, DPR;
+function resize(){
+  DPR = Math.min(devicePixelRatio||1, 2);
+  W = innerWidth; H = innerHeight;
+  cv.width = W*DPR; cv.height = H*DPR;
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+resize(); addEventListener('resize', resize);
+
+const palette = ['#ff5c85','#e11d48','#ffb3c6','#ff8fab','#e9cfa2'];
+const parts = [];
+
+function heart(x,y,s){
+  ctx.beginPath();
+  ctx.moveTo(x, y+s*.3);
+  ctx.bezierCurveTo(x, y, x-s*.5, y, x-s*.5, y+s*.3);
+  ctx.bezierCurveTo(x-s*.5, y+s*.6, x, y+s*.78, x, y+s);
+  ctx.bezierCurveTo(x, y+s*.78, x+s*.5, y+s*.6, x+s*.5, y+s*.3);
+  ctx.bezierCurveTo(x+s*.5, y, x, y, x, y+s*.3);
+  ctx.closePath();
+}
+
+function floater(initial){
+  const depth = Math.random();              // 0 far … 1 near
+  parts.push({
+    type:'float', depth,
+    x:Math.random()*W, y: initial ? Math.random()*H : H+60,
+    s:10+depth*34, vy:.35+depth*1.1,
+    sway:12+Math.random()*28, ph:Math.random()*6.28, sp:.008+Math.random()*.012,
+    a:.2+depth*.6, c:palette[(Math.random()*palette.length)|0]
+  });
+}
+function burst(x,y,n){
+  for(let i=0;i<n;i++){
+    const a = Math.random()*6.283, v = 2+Math.random()*7;
+    parts.push({type:'burst',x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-3,s:8+Math.random()*18,
+      life:1,decay:.008+Math.random()*.01,rot:Math.random()*6,vr:(Math.random()-.5)*.2,
+      c:palette[(Math.random()*palette.length)|0]});
+  }
+}
+function spark(x,y){
+  parts.push({type:'spark',x,y,vx:(Math.random()-.5)*.8,vy:-Math.random()*.8,r:1+Math.random()*2,life:1,decay:.03,c:Math.random()>.5?'#e9cfa2':'#ffb3c6'});
+}
+
+for(let i=0;i<(reduce?14:34);i++) floater(true);
+
+function frame(){
+  ctx.clearRect(0,0,W,H);
+  for(let i=parts.length-1;i>=0;i--){
+    const p = parts[i];
+    if(p.type==='float'){
+      p.y -= p.vy; p.ph += p.sp*6;
+      const x = p.x + Math.sin(p.ph)*p.sway;
+      ctx.save();
+      ctx.globalAlpha = p.a * Math.min(1,(H-p.y)/120) * Math.min(1,(p.y+60)/160);
+      ctx.fillStyle = p.c;
+      if(p.depth>.6){ctx.shadowColor=p.c;ctx.shadowBlur=18;}
+      ctx.translate(x,p.y); ctx.rotate(Math.sin(p.ph)*.25); heart(0,0,p.s);
+      ctx.fill(); ctx.restore();
+      if(p.y < -60){ parts.splice(i,1); floater(false); }
+    }else if(p.type==='burst'){
+      p.vy += .12; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life -= p.decay;
+      if(p.life<=0){parts.splice(i,1);continue}
+      ctx.save(); ctx.globalAlpha = p.life; ctx.fillStyle = p.c; ctx.shadowColor=p.c; ctx.shadowBlur=10;
+      ctx.translate(p.x,p.y); ctx.rotate(p.rot); heart(0,0,p.s); ctx.fill(); ctx.restore();
+    }else{
+      p.x += p.vx; p.y += p.vy; p.life -= p.decay;
+      if(p.life<=0){parts.splice(i,1);continue}
+      ctx.save(); ctx.globalAlpha = p.life; ctx.fillStyle = p.c; ctx.shadowColor=p.c; ctx.shadowBlur=8;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,6.283); ctx.fill(); ctx.restore();
+    }
+  }
+  requestAnimationFrame(frame);
+}
+frame();
+
+if(!reduce){
+  addEventListener('pointermove', e => { if(Math.random()<.5) spark(e.clientX,e.clientY); });
+}
+
+/* ---------- scenes ---------- */
+let current = 1;
+function go(n){
+  document.querySelectorAll('.scene').forEach((s,i)=>s.classList.toggle('active', i===n-1));
+  document.querySelectorAll('#dots b').forEach((d,i)=>d.classList.toggle('on', i===n-1));
+  current = n;
+}
+
+/* scene 1: typewriter */
+(function(){
+  const t = $('typed'); let i = 0;
+  const caret = '<span class="caret"></span>';
+  (function type(){
+    t.innerHTML = MAIN_TEXT.slice(0,i) + caret;
+    if(i++ < MAIN_TEXT.length) return setTimeout(type, reduce?0:170);
+    setTimeout(()=>$('sub').style.opacity = 1, 500);
+    setTimeout(()=>$('b1').classList.add('show'), 1500);
+  })();
+})();
+
+$('b1').onclick = () => {
+  go(2);
+  burst(W/2, H/2, 18);
+  document.querySelectorAll('.letter p').forEach((p,i)=>setTimeout(()=>p.classList.add('in'), 900 + i*1700));
+  setTimeout(()=>$('b2').classList.add('show'), 900 + 4*1700);
+};
+$('b2').onclick = () => go(3);
+
+/* scene 3: the runaway No */
+const no = $('no'), yes = $('yes');
+const nos = ['No','Are you sure?','Think again','Pretty please','Really?'];
+let tries = 0;
+function dodge(e){
+  if(e) e.preventDefault();
+  tries++;
+  no.textContent = nos[tries % nos.length];
+  yes.style.transform = 'scale(' + Math.min(1 + tries*.1, 1.7) + ')';
+  no.classList.add('run');
+  const pad = 24, w = no.offsetWidth, h = no.offsetHeight;
+  no.style.left = (pad + Math.random()*(W - w - pad*2)) + 'px';
+  no.style.top  = (pad + Math.random()*(H - h - pad*2 - 40)) + 'px';
+}
+no.addEventListener('pointerenter', dodge);
+no.addEventListener('pointerdown', dodge);
+no.addEventListener('click', dodge);
+
+/* scene 4: celebration */
+yes.onclick = () => {
+  no.style.display = 'none';
+  go(4);
+  let n = 0;
+  const iv = setInterval(()=>{
+    burst(W*(.15+Math.random()*.7), H*(.2+Math.random()*.4), 26);
+    if(++n > 9) clearInterval(iv);
+  }, 380);
+  if(!reduce) for(let i=0;i<30;i++) floater(false);
+};
+</script>
+</body>
+</html>
