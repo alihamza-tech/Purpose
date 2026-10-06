@@ -3,7 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>For You</title>
+<title>For Fariha</title>
+<meta name="description" content="A little something, just for you.">
+<meta name="theme-color" content="#14040e">
+<meta property="og:title" content="For Fariha ♥">
+<meta property="og:description" content="Open this, it is just for you.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E❤️%3C/text%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Great+Vibes&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -94,19 +99,38 @@
   .dots b{width:7px;height:7px;border-radius:50%;background:rgba(233,207,162,.3);transition:all .5s}
   .dots b.on{background:var(--gold);width:26px;border-radius:6px}
 
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.5))}
+  .glow{position:fixed;left:0;top:0;width:520px;height:520px;margin:-260px 0 0 -260px;border-radius:50%;background:radial-gradient(circle,rgba(255,92,133,.17),transparent 65%);pointer-events:none;z-index:0;transition:transform .3s ease-out;will-change:transform}
+
+  .draw{display:block;width:clamp(70px,16vw,96px);margin:0 auto 16px;overflow:visible}
+  .draw path{fill:none;stroke:var(--gold);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:320;stroke-dashoffset:320;animation:draw 2.6s ease .3s forwards,glowpulse 2.4s ease-in-out 3s infinite}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  @keyframes glowpulse{0%,100%{filter:drop-shadow(0 0 2px rgba(255,92,133,.4))}50%{filter:drop-shadow(0 0 10px rgba(255,92,133,.95))}}
+
+  .letter p.to{font-style:italic;color:var(--gold);text-align:left}
+  .reasons{list-style:none;margin:10px 0 0;text-align:left}
+  .reasons li{display:flex;gap:16px;align-items:baseline;padding:18px 4px;border-bottom:1px solid rgba(233,207,162,.22);font-size:clamp(1.15rem,3.8vw,1.5rem);line-height:1.4;opacity:0;transform:translateX(-14px);transition:opacity .9s ease,transform .9s ease}
+  .reasons li:last-child{border-bottom:0}
+  .reasons li.in{opacity:1;transform:none}
+  .reasons li span{color:var(--rose)}
+  .reasons li b{font-weight:600;color:#fff4f6}
+
   @media (prefers-reduced-motion:reduce){
+    .draw path{animation:none;stroke-dashoffset:0}
     .stars i,.divider span,.caret{animation:none}
     .scene,.letter p{transition-duration:.01s}
   }
 </style>
 </head>
 <body>
+<div class="glow" id="glow" aria-hidden="true"></div>
 <div class="stars" id="stars" aria-hidden="true"></div>
 <canvas id="fx" aria-hidden="true"></canvas>
 
 <div class="stage">
   <!-- 1 · Hero -->
   <section class="scene active" id="s1">
+    <svg class="draw" viewBox="0 0 100 90" aria-hidden="true"><path d="M50 85 C10 55 2 28 22 14 C36 5 48 14 50 24 C52 14 64 5 78 14 C98 28 90 55 50 85 Z"/></svg>
     <p class="eyebrow" id="eyebrow"></p>
     <h1 class="hero" id="typed" aria-label="I like you"></h1>
     <p class="sub" id="sub" style="opacity:0;transition:opacity 1.4s">There is something I have wanted to tell you.</p>
@@ -116,6 +140,7 @@
   <!-- 2 · Letter -->
   <section class="scene" id="s2">
     <div class="card letter">
+      <p class="to" id="to"></p>
       <p>From the moment I met you, something in me quietly changed.</p>
       <p>You make ordinary days feel like moments worth keeping.</p>
       <p>I am not good with perfect words, so I will simply be honest:</p>
@@ -124,9 +149,20 @@
     <button class="primary cta" id="b2">Continue</button>
   </section>
 
+  <!-- 2b · Reasons -->
+  <section class="scene" id="sr">
+    <p class="eyebrow">Things I adore about you</p>
+    <ul class="reasons">
+      <li><span>♥</span><div><b>Your smile</b><br>It changes my whole mood.</div></li>
+      <li><span>♥</span><div><b>Your kindness</b><br>It is rare, and I notice it.</div></li>
+      <li><span>♥</span><div><b>Your company</b><br>Around you, everything feels calm and happy.</div></li>
+    </ul>
+    <button class="primary cta" id="b3">One last thing</button>
+  </section>
+
   <!-- 3 · Question -->
   <section class="scene" id="s3">
-    <p class="eyebrow">One small question</p>
+    <p class="eyebrow" id="qEye">One small question</p>
     <h2 class="title">Will you be mine?</h2>
     <div class="divider"><span>♥</span></div>
     <p class="sub">I promise to make you smile, every single day.</p>
@@ -141,16 +177,16 @@
     <p class="eyebrow">You said yes</p>
     <h2 class="hero">Forever starts now</h2>
     <div class="divider"><span>♥</span></div>
-    <p class="sub">You just made me the happiest person in the world.</p>
+    <p class="sub" id="final">You just made me the happiest person in the world.</p>
     <p class="signature" id="sign"></p>
   </section>
 </div>
 
-<div class="dots" id="dots" aria-hidden="true"><b class="on"></b><b></b><b></b><b></b></div>
+<div class="dots" id="dots" aria-hidden="true"><b class="on"></b><b></b><b></b><b></b><b></b></div>
 
 <script>
 /* ======== Edit these ======== */
-const HER_NAME  = "";            // e.g. "Ayesha"  (leave empty to hide)
+const HER_NAME  = "Fariha";      // her name
 const YOUR_NAME = "";            // e.g. "Ali"     (leave empty to hide)
 const MAIN_TEXT = "I like you";
 /* ============================ */
@@ -160,6 +196,11 @@ const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 $('eyebrow').textContent = HER_NAME ? 'For ' + HER_NAME : 'Just for you';
 $('sign').textContent = YOUR_NAME ? 'Yours, ' + YOUR_NAME : 'Yours, always';
+$('to').textContent = HER_NAME ? 'Dear ' + HER_NAME + ',' : 'Dear you,';
+if(HER_NAME){
+  $('qEye').textContent = HER_NAME + ', one small question';
+  $('final').textContent = 'You just made me the happiest person in the world, ' + HER_NAME + '.';
+}
 
 /* stars */
 (function(){
@@ -256,6 +297,11 @@ if(!reduce){
   addEventListener('pointermove', e => { if(Math.random()<.5) spark(e.clientX,e.clientY); });
 }
 
+/* soft glow that follows the pointer */
+const glow = $('glow');
+glow.style.transform = 'translate(' + innerWidth/2 + 'px,' + innerHeight/2 + 'px)';
+if(!reduce) addEventListener('pointermove', e => { glow.style.transform = 'translate(' + e.clientX + 'px,' + e.clientY + 'px)'; });
+
 /* ---------- scenes ---------- */
 let current = 1;
 function go(n){
@@ -279,10 +325,17 @@ function go(n){
 $('b1').onclick = () => {
   go(2);
   burst(W/2, H/2, 18);
-  document.querySelectorAll('.letter p').forEach((p,i)=>setTimeout(()=>p.classList.add('in'), 900 + i*1700));
-  setTimeout(()=>$('b2').classList.add('show'), 900 + 4*1700);
+  const ps = [...document.querySelectorAll('.letter p')];
+  ps.forEach((p,i)=>setTimeout(()=>p.classList.add('in'), 900 + i*1600));
+  setTimeout(()=>$('b2').classList.add('show'), 900 + ps.length*1600);
 };
-$('b2').onclick = () => go(3);
+$('b2').onclick = () => {
+  go(3);
+  const li = [...document.querySelectorAll('.reasons li')];
+  li.forEach((el,i)=>setTimeout(()=>el.classList.add('in'), 900 + i*1400));
+  setTimeout(()=>$('b3').classList.add('show'), 900 + li.length*1400);
+};
+$('b3').onclick = () => go(4);
 
 /* scene 3: the runaway No */
 const no = $('no'), yes = $('yes');
@@ -305,7 +358,7 @@ no.addEventListener('click', dodge);
 /* scene 4: celebration */
 yes.onclick = () => {
   no.style.display = 'none';
-  go(4);
+  go(5);
   let n = 0;
   const iv = setInterval(()=>{
     burst(W*(.15+Math.random()*.7), H*(.2+Math.random()*.4), 26);
