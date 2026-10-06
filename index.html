@@ -115,6 +115,16 @@
   .reasons li span{color:var(--rose)}
   .reasons li b{font-weight:600;color:#fff4f6}
 
+  .reply{display:block;margin-top:22px;opacity:0;transition:opacity 1.2s ease}
+  .reply.show{opacity:1}
+  .reply textarea{
+    width:100%;resize:none;padding:14px 18px;border-radius:16px;font:inherit;font-size:1.2rem;line-height:1.4;
+    color:var(--blush);background:rgba(255,255,255,.07);border:1px solid rgba(233,207,162,.35);
+  }
+  .reply textarea::placeholder{color:rgba(255,217,226,.55);font-style:italic}
+  .reply textarea:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+  .reply .primary{margin-top:14px;font-size:1.1rem;padding:12px 30px}
+
   @media (prefers-reduced-motion:reduce){
     .draw path{animation:none;stroke-dashoffset:0}
     .stars i,.divider span,.caret{animation:none}
@@ -178,6 +188,10 @@
     <h2 class="hero">Forever starts now</h2>
     <div class="divider"><span>♥</span></div>
     <p class="sub" id="final">You just made me the happiest person in the world.</p>
+    <div class="reply" id="reply">
+      <textarea id="msg" rows="2" maxlength="400" placeholder="Write something for me..."></textarea>
+      <button class="primary" id="wa">Send Me</button>
+    </div>
     <p class="signature" id="sign"></p>
   </section>
 </div>
@@ -189,6 +203,8 @@
 const HER_NAME  = "Fariha";      // her name
 const YOUR_NAME = "";            // e.g. "Ali"     (leave empty to hide)
 const MAIN_TEXT = "I like you";
+const WHATSAPP_NUMBER = "03704658557";      // your number with country code, digits only, e.g. "923001234567"
+const WEB3FORMS_KEY = "";       // paste your Web3Forms access key here to get her answer by email
 /* ============================ */
 
 const $ = id => document.getElementById(id);
@@ -355,10 +371,40 @@ no.addEventListener('pointerenter', dodge);
 no.addEventListener('pointerdown', dodge);
 no.addEventListener('click', dodge);
 
+/* email me when she says yes (Web3Forms) */
+let sent = false;
+async function notify(){
+  if(!WEB3FORMS_KEY || sent) return;
+  sent = true;
+  const who = HER_NAME || 'She';
+  try{
+    await fetch('https://api.web3forms.com/submit',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify({
+        access_key:WEB3FORMS_KEY,
+        subject:who + ' said YES! \u2665',
+        from_name:'Proposal Page',
+        message:who + ' tapped YES on ' + new Date().toLocaleString() + '. She tried to press No ' + tries + ' time(s) first.'
+      })
+    });
+  }catch(e){}
+}
+
+/* her reply opens WhatsApp with the message ready to send to you */
+$('wa').onclick = () => {
+  if(!WHATSAPP_NUMBER){ alert('Add your WhatsApp number in index.html (WHATSAPP_NUMBER) first.'); return; }
+  const t = $('msg').value.trim();
+  const text = 'Yes \u2665' + (HER_NAME ? ' \u2014 ' + HER_NAME : '') + (t ? '\n\n' + t : '');
+  window.open('https://wa.me/' + WHATSAPP_NUMBER.replace(/\D/g,'') + '?text=' + encodeURIComponent(text), '_blank');
+};
+
 /* scene 4: celebration */
 yes.onclick = () => {
   no.style.display = 'none';
+  notify();
   go(5);
+  setTimeout(()=>$('reply').classList.add('show'), 2500);
   let n = 0;
   const iv = setInterval(()=>{
     burst(W*(.15+Math.random()*.7), H*(.2+Math.random()*.4), 26);
